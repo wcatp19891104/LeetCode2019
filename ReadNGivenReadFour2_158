@@ -1,0 +1,76 @@
+// https://leetcode.com/problems/read-n-characters-given-read4-ii-call-multiple-times/
+// 利用queue保存多余的
+public class Solution extends Reader4 {
+    
+    /**
+     * @param buf Destination buffer
+     * @param n   Number of characters to read
+     * @return    The number of actual characters read
+     */
+    
+    private boolean read4End = false;
+    private Queue<Character> read4Buffer = new LinkedList<>();
+    public int read(char[] buf, int n) {
+        if (buf == null || n == 0) {
+            return 0;
+        }
+        
+        // is file End
+        if (read4End) {
+            return 0;
+        }
+        
+        int currentIndex = 0;
+        // read from queue
+        while(!read4Buffer.isEmpty()) {
+            buf[currentIndex] = read4Buffer.poll();
+            currentIndex++;
+            n--;
+            if (n == 0) {
+                return currentIndex;
+            }
+        }
+        
+        // read from read 4
+        int read4Count = n / 4;
+        int read4Remaining = n % 4;
+        for (int i = 0; i < read4Count; i++) {
+            char[] temp = new char[4];
+            int readBack = read4(temp);
+            for (int j = 0; j < readBack; j++) {
+                buf[currentIndex] = temp[j];
+                currentIndex++;
+            }
+            if (readBack < 4) {
+                // reach the end of file
+                read4End = true;
+                return currentIndex;
+            }
+        }
+        
+        
+        char[] temp = new char[4];
+        int remaining = read4(temp);
+        for (int i = 0; i < Math.min(remaining, read4Remaining); i++) {
+            buf[currentIndex] = temp[i];
+            currentIndex++;
+        }
+        
+        // if having remaining, add to buffer queue
+        if (remaining > read4Remaining) {
+            //System.out.println("reamining: " + remaining);
+            //System.out.println("read4Remaining: " + read4Remaining);
+            int offset = remaining - read4Remaining;
+            for(int i = remaining - offset; i < remaining; i++) {
+                //System.out.println("offering " + temp[i]);
+                read4Buffer.offer(temp[i]);
+            }
+        } else {
+            // if didn't read enough, set file end flag to true
+            read4End = true;
+        }
+        
+        
+        return currentIndex;        
+    }
+}
